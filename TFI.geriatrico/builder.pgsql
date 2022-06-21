@@ -95,6 +95,21 @@ CREATE TABLE geriatrico.public.proyectos_profesionales (
                 CONSTRAINT proyectos_profesionales_pk PRIMARY KEY (idproyecto, idprofesional)
 );
 
+create table log_trigger_pacientes (
+                int idpaciente, 
+                int dni, 
+                varchar nombre,
+                int num_pami, 
+                varchar medico_cabecera, 
+                int edad, 
+                int habitacion, 
+                dep dependencia,
+                sn pañal, 
+                diet dieta_especial, 
+                VARCHAR current_user, 
+                DATE current_date,
+);
+
 
 ALTER TABLE geriatrico.public.Historia_clinica ADD CONSTRAINT pacientes_historial_clinico_fk
 FOREIGN KEY (idpaciente)
