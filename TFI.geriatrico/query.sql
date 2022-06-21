@@ -1,4 +1,3 @@
-/*
 --Vista de todos los participantes del taller de musica con su profesional a cargo.
 
 CREATE VIEW participantes_musica
@@ -13,44 +12,48 @@ SELECT *
 FROM participantes_musica ORDER BY fecha, nombre;
 
 
+
 --Mayores de 90 que no participaron de ningun proyecto y su persona a cargo es la asistente del hogar
 
 SELECT pa.idpaciente, pa.nombre, pa.edad, pc.nombre AS responsable
 FROM pacientes pa INNER JOIN personacargo pc ON pa.idpaciente = pc.idpaciente
 WHERE (pa.edad > 90) AND pc.relacion LIKE 'Asistente Social' AND NOT EXISTS (SELECT *
-     			  															 FROM proyectos_pacientes ppa
-   			  															 WHERE pa.idpaciente = ppa.idpaciente);
-
-ALTER TABLE pacientes ALTER COLUMN edad TYPE INTEGER USING edad::integer;
-
-*/
+   
+FROM proyectos_pacientes ppa   			  															 WHERE pa.idpaciente = ppa.idpaciente);
 
 
--- Profesionales que participaron en la actividad con menor cantidad de pacientes
+--Ver historia clinica del paciente solicitado en el where
 
-SELECT * FROM PROFESIONAL
+SELECT pa.nombre AS paciente, hc.entrada, hc. indicaciones, hc.diagnostico, pf.nombre AS profesional, hc.fecha
+FROM (historia_clinica hc NATURAL JOIN pacientes pa) INNER JOIN profesional pf ON hc.idmedico = pf.idmedico
+WHERE idpaciente = 6 
+ORDER BY fecha, pf.nombre;
 
-SELECT P.idprofesional, P.nombre, P.especialidad
-FROM profesional P INNER JOIN proyectos_profesionales a on p.idprofesional = a.idprofesional 
-                     INNER JOIN proyectos_pacientes c on a.idproyecto = c.idproyecto
-WHERE(
-   (SELECT count(idpaciente)
-    FROM proyectos_pacientes
-    GROUP BY idproyecto
-    ORDER BY idproyecto
-    )
-     
-      
-      =(
--- CALCULA CUAL FUE EL MENOR NUMERO DE PARTICIPANTES          
-SELECT MIN(count) 
+
+
+
+-- Profesionales que participaron en la actividad con menor cantidad de pacientes	
+ 
+CREATE FUNCTION menos_participantes() RETURNS INT AS $$
+SELECT MIN(count)
 FROM (SELECT COUNT (idpaciente)
-      FROM proyectos_pacientes
-      GROUP BY idproyecto
-      ORDER BY idproyecto) 
-minimo
-))
+  	FROM proyectos_pacientes
+  	GROUP BY idproyecto
+  	ORDER BY idproyecto)
+minimo $$ LANGUAGE SQL;
 
-
-
-
+CREATE OR REPLACE VIEW participantes_por_proyecto
+AS SELECT COUNT (ppa.idpaciente), ppa.idproyecto
+  	FROM proyectos_pacientes ppa
+  	GROUP BY ppa.idproyecto
+  	ORDER BY idproyecto
+      
+CREATE OR REPLACE VIEW profesionales_por_proyecto
+AS SELECT pf.idmedico, ppf.idproyecto, pf.nombre, pf.especialidad
+    FROM proyectos_profesionales ppf NATURAL JOIN profesional pf
+    GROUP BY pf.idmedico, ppf.idproyecto, pf.nombre, pf.especialidad
+    ORDER BY idproyecto
+    
+SELECT pap.idproyecto, pfp.idmedico, pfp.nombre, pap.count AS cant_participantes
+FROM participantes_por_proyecto pap NATURAL JOIN profesionales_por_proyecto pfp
+WHERE pap.count = menos_participantes();
