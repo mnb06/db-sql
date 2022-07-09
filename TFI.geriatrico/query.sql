@@ -11,6 +11,7 @@ SELECT *
 FROM participantes_musica ORDER BY fecha, nombre;
 
 
+
 --Mayores de 90 que no participaron de ningun proyecto y su persona a cargo es la asistente del hogar
 SELECT pa.idpaciente, pa.nombre, pa.edad, pc.nombre AS responsable
 FROM pacientes pa INNER JOIN personacargo pc ON pa.idpaciente = pc.idpaciente
@@ -18,10 +19,12 @@ WHERE (pa.edad > 90) AND pc.relacion LIKE 'Asistente Social' AND NOT EXISTS (SEL
      			  															 FROM proyectos_pacientes ppa
    			  															 WHERE pa.idpaciente = ppa.idpaciente);
 
+
 --Ver historia clinica del paciente solicitado en el where
 SELECT pa.nombre AS paciente, hc.entrada, hc. indicaciones, hc.diagnostico, pf.nombre AS profesional, hc.fecha
 FROM (historia_clinica hc NATURAL JOIN pacientes pa) INNER JOIN profesional pf ON hc.idprofesional = pf.idprofesional
 WHERE idpaciente = 2 ORDER BY fecha, pf.nombre;
+
 
 
 -- Profesionales que participaron en la actividad con menor cantidad de pacientes
